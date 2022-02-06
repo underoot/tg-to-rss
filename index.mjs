@@ -8,7 +8,7 @@ const app = express();
 const airgram = new Airgram({
   apiId: process.env.API_ID,
   apiHash: process.env.API_HASH,
-  command: 'td/build/libtdjson',
+  command: 'td/build/libtdjson.dylib',
   logVerbosityLevel: 1,
   useChatInfoDatabase: false
 });
@@ -16,9 +16,13 @@ const airgram = new Airgram({
 airgram.use(new Auth({
   code: () => prompt(`Please enter the secret code:\n`),
   phoneNumber: () => prompt(`Please enter your phone number:\n`),
-  password: () =>prompt(`Password:\n`) 
+  password: () => prompt(`Password:\n`) 
 }))
 
+void (async () => {
+  const me = toObject(await airgram.api.getMe())
+  console.log(`[Me] `, me)
+});
 
 app.get('/feed/:name', async (req, res) => {
   const { response: { chatIds } } = await airgram.api.searchPublicChats({
@@ -56,11 +60,28 @@ app.get('/feed/:name', async (req, res) => {
     supergroupId: chat.response.type.supergroupId
   });
 
+
+  let imageUrl = null;
+
+  if (chat.response.photo?.big.id) {
+    const { response: photoFile } = await airgram.api.downloadFile({
+      fileId: chat.response.photo?.big.id,
+      priority: 1,
+      synchronous: true
+    });
+
+    const image = readFileSync(photoFile.local.path);
+
+    imageUrl = `data:image/jpeg;base64,${image.toString('base64')}`;
+  }
+
+
   const feed = new RSS({
     title: chatInfo.title,
     description: fullInfo.description,
     feed_url: `https://t.me/${req.params.name}`,
     site_url: req.params.name,
+    image_url: imageUrl ?? undefined
   });
 
   const { response: { messages: [ lastMessage ] } } = await airgram.api.getChatHistory({
@@ -75,9 +96,9 @@ app.get('/feed/:name', async (req, res) => {
     fromMessageId: lastMessage.id
   });
 
-  let image = null;
-
   for (const message of [lastMessage, ...historyInfo.messages] ?? []) {
+    let image = null;
+
     if (message.content?.photo) {
       const [{ photo }] = message.content.photo.sizes;
       const { response: photoFile } = await airgram.api.downloadFile({
