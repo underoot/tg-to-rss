@@ -1,18 +1,16 @@
 {
   "name": "@underoot/tg-to-rss",
   "version": "1.0.0",
-  "description": "",
+  "description": "Generate RSS feed from Telegram channel",
   "main": "index.js",
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "doctl serverless deploy .",
-    "build": "rollup -c rollup.config.mjs",
-    "dev": "nodemon --inspect index.mjs",
-    "start": "node index.mjs"
+    "build": "rollup -c rollup.config.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["telegram", "rss"],
+  "author": "Aleksandr Shoronov",
+  "license": "MIT",
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
     "feed": "^4.2.2"

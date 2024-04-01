@@ -18,4 +18,10 @@ jobs:
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
       - run: doctl serverless install && doctl serverless connect
+      - run: echo "::add-mask::$DIGITALOCEAN_NAMESPACE"
+        env:
+          DIGITALOCEAN_NAMESPACE: ${{ secrets.DIGITALOCEAN_NAMESPACE }}
+      - run: echo "::add-mask::$DIGITALOCEAN_HOST"
+        env:
+          DIGITALOCEAN_HOST: ${{ secrets.DIGITALOCEAN_HOST }}
       - run: doctl serverless deploy .
