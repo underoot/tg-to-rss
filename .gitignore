@@ -1,6 +1,5 @@
-__tglib__/
-db/
-td/
+.deployed/
+packages/
 node_modules/
 npm-debug.log
 yarn-error.log

@@ -1,138 +1,114 @@
-import { Airgram, Auth, prompt, toObject } from 'airgram'
-import { readFileSync } from 'fs';
-import express from 'express';
-import RSS from 'rss-generator';
+import { Feed } from "feed";
+import { load } from "cheerio";
 
-const app = express();
+async function getFeed({ channelName }) {
+  let channelHTML;
 
-const airgram = new Airgram({
-  apiId: process.env.API_ID,
-  apiHash: process.env.API_HASH,
-  command: 'td/build/libtdjson.dylib',
-  logVerbosityLevel: 1,
-  useChatInfoDatabase: false
-});
-
-airgram.use(new Auth({
-  code: () => prompt(`Please enter the secret code:\n`),
-  phoneNumber: () => prompt(`Please enter your phone number:\n`),
-  password: () => prompt(`Password:\n`) 
-}))
-
-void (async () => {
-  const me = toObject(await airgram.api.getMe())
-  console.log(`[Me] `, me)
-});
-
-app.get('/feed/:name', async (req, res) => {
-  const { response: { chatIds } } = await airgram.api.searchPublicChats({
-    query: req.params.name,
-    limit: 1
-  });
-
-  if (!chatIds.length) {
-    res.send(404);
-    return;
+  try {
+    channelHTML = await fetch(`https://t.me/s/${channelName}`).then((res) =>
+      res.text()
+    );
+  } catch (error) {
+    return {
+      error: {
+        code: 400,
+        message: error.message,
+      },
+    };
   }
 
-  let chat;
-
-  for (const chatId of chatIds) {
-    chat = await airgram.api.getChat({
-      chatId: chatId
-    });
-
-    if (!chat.response.type.isChannel) {
-      chat = null;
-    } else {
-      break;
-    }
+  if (!channelHTML.includes("tgme_channel_info")) {
+    return {
+      error: {
+        code: 404,
+        message: "Channel not found",
+      },
+    };
   }
 
-  if (!chat) {
-    res.send(404);
-    return;
-  }
+  const $ = load(channelHTML);
+  const title = $(".tgme_channel_info_header_title").text();
+  const description = $(".tgme_channel_info_description").text();
+  const link = `https://t.me/s/${channelName}`;
 
-  const { response: chatInfo } = chat;
-
-  const { response: fullInfo } = await airgram.api.getSupergroupFullInfo({
-    supergroupId: chat.response.type.supergroupId
+  const feed = new Feed({
+    title,
+    description,
+    id: link,
+    link,
   });
 
-
-  let imageUrl = null;
-
-  if (chat.response.photo?.big.id) {
-    const { response: photoFile } = await airgram.api.downloadFile({
-      fileId: chat.response.photo?.big.id,
-      priority: 1,
-      synchronous: true
-    });
-
-    const image = readFileSync(photoFile.local.path);
-
-    imageUrl = `data:image/jpeg;base64,${image.toString('base64')}`;
-  }
-
-
-  const feed = new RSS({
-    title: chatInfo.title,
-    description: fullInfo.description,
-    feed_url: `https://t.me/${req.params.name}`,
-    site_url: req.params.name,
-    image_url: imageUrl ?? undefined
-  });
-
-  const { response: { messages: [ lastMessage ] } } = await airgram.api.getChatHistory({
-    chatId: chatInfo.id,
-    limit: 1
-  });
-
-  const { response: historyInfo } = await airgram.api.getChatHistory({
-    chatId: chatInfo.id,
-    limit: 5,
-    offset: 0,
-    fromMessageId: lastMessage.id
-  });
-
-  for (const message of [lastMessage, ...historyInfo.messages] ?? []) {
+  $(".tgme_widget_message").each((_, el) => {
+    const $el = $(el);
+    const $content = $el.find(".tgme_widget_message_bubble");
+    const link = `https://t.me/${$el.attr("data-post")}`;
+    const date = new Date(
+      $el.find(".tgme_widget_message_date time").attr("datetime")
+    );
     let image = null;
 
-    if (message.content?.photo) {
-      const [{ photo }] = message.content.photo.sizes;
-      const { response: photoFile } = await airgram.api.downloadFile({
-        fileId: photo.id,
-        priority: 1,
-        synchronous: true
-      });
+    $content.find(".tgme_widget_message_photo_wrap").each((_, el) => {
+      const $el = $(el);
+      const style = $el.attr("style");
+      const match = style.match(/url\(['"](.*?)['"]\)/);
 
-      image = readFileSync(photoFile.local.path);
-    }
-
-    const text = message.content?.text?.text ?? message.content?.caption?.text ?? '';
-    const description = [
-      image ? `<img src="data:image/jpeg;base64,${image.toString('base64')}" />` : '',
-      text ? `<p>${text}</p>` : ''
-    ].filter(Boolean).join('<br />')
-    const title = (/(^.*?[.!?:])\s+\W*.*/.exec(text.replace(/\n/g, '')) || [])[1];
-    const { response: urlResponse } = await airgram.api.getMessageLink({
-      chatId: chat.response.id,
-      messageId: message.id
+      if (match) {
+        if (!image) {
+          image = match[1];
+        }
+        $el.replaceWith(`<img src="${match[1]}">`);
+      }
     });
 
-    feed.item({
-      title: title ?? text.slice(0, 30) ?? 'Новый пост',
-      description,
-      url: urlResponse.link,
-      guid: message.id,
-      date: new Date(message.date * 1000).toISOString()
-    })
+    $content.find("*").each((_, el) => {
+      $(el).attr("style", "");
+    });
+
+    $content.find(".tgme_widget_message_bubble_tail").remove();
+    $content.find(".tgme_widget_message_owner_name").remove();
+    $content.find(".tgme_widget_message_date").remove();
+
+    feed.addItem({
+      id: link,
+      link,
+      title: `New post at ${date.toLocaleDateString()}`,
+      content: $content.html(),
+      date,
+      image,
+    });
+  });
+
+  return feed;
+}
+
+export async function main({ channelName }) {
+  if (!channelName) {
+    return {
+      "content-type": "application/json",
+      body: {
+        error: "Channel name is required",
+      },
+    };
   }
 
-  res.set('Content-Type', 'text/xml')
+  return getFeed({ channelName }).then((feed) => {
+    if (feed.error) {
+      return {
+        "content-type": "application/xml",
+        body: `
+          <xml version="1.0" encoding="UTF-8">
+            <error>
+              <code>${feed.error.code}</code>
+              <message>${feed.error.message}</message>
+            </error>
+          </xml>
+        `,
+      };
+    }
 
-  res.send(feed.xml());
-});
-
-app.listen(3000);
+    return {
+      "content-type": "application/xml",
+      body: feed.rss2(),
+    };
+  });
+}

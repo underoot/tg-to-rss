@@ -1,9 +1,12 @@
 {
-  "name": "tg-to-rss",
+  "name": "@underoot/tg-to-rss",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "doctl serverless deploy .",
+    "build": "rollup -c rollup.config.mjs",
     "dev": "nodemon --inspect index.mjs",
     "start": "node index.mjs"
   },
@@ -11,11 +14,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "airgram": "^5.0.0",
-    "express": "^4.17.2",
-    "rss-generator": "^0.0.3"
+    "cheerio": "^1.0.0-rc.12",
+    "feed": "^4.2.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "nodemon": "^2.0.15",
+    "rollup": "^4.13.2",
+    "rollup-plugin-node-builtins": "^2.1.2"
   }
 }
