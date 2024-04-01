@@ -67,6 +67,7 @@ async function getFeed({ channelName }) {
     $content.find(".tgme_widget_message_bubble_tail").remove();
     $content.find(".tgme_widget_message_owner_name").remove();
     $content.find(".tgme_widget_message_date").remove();
+    $content.find(".tgme_widget_message_link_preview").remove();
 
     feed.addItem({
       id: link,
