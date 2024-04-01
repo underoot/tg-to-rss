@@ -69,7 +69,10 @@ async function getFeed({ channelName }) {
     $content.find(".tgme_widget_message_date").remove();
     $content.find(".tgme_widget_message_link_preview").remove();
 
-    $content.find(".tgme_widget_message_meta").before("<br />");
+    $content.find(".tgme_widget_message_meta").before(" ");
+    $content
+      .find("tgme_widget_message_info")
+      .attr("style", "font-size: 0.7em;");
 
     feed.addItem({
       id: link,
