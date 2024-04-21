@@ -77,7 +77,7 @@ async function getFeed({ channelName }) {
     items.push({
       id: link,
       link,
-      content: $content.find(".tgme_widget_message_text").html(),
+      content: $content.html(),
       date,
       image,
     });
