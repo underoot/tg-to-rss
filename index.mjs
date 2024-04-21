@@ -79,7 +79,7 @@ async function getFeed({ channelName }) {
     const forwardedFrom = $content
       .find(".tgme_widget_message_forwarded_from")
       .html()
-      .trim();
+      ?.trim();
     const text = $content.find(".tgme_widget_message_text").html().trim();
 
     items.push({
