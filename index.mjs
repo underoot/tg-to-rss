@@ -34,9 +34,12 @@ async function getFeed({ channelName }) {
   const feed = new Feed({
     title,
     description,
+    image: $("meta[property='og:image']").attr("content"),
     id: link,
     link,
   });
+
+  const items = [];
 
   $(".tgme_widget_message").each((_, el) => {
     const $el = $(el);
@@ -74,7 +77,7 @@ async function getFeed({ channelName }) {
       .find("tgme_widget_message_info")
       .attr("style", "font-size: 0.7em;");
 
-    feed.addItem({
+    items.push({
       id: link,
       link,
       title: `New post at ${date.toLocaleDateString()}`,
@@ -82,6 +85,10 @@ async function getFeed({ channelName }) {
       date,
       image,
     });
+  });
+
+  items.reverse().forEach((item) => {
+    feed.addItem(item);
   });
 
   return feed;
