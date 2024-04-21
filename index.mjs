@@ -74,16 +74,18 @@ async function getFeed({ channelName }) {
     $content.find(".tgme_widget_message_author").remove();
     $content.find(".tgme_widget_message_footer").remove();
 
-    $content.find("div").each((_, el) => {
-      $(el).replaceWith(`<p>${$(el).html()}</p>`);
-    });
+    $content.find(".tgme_widget_message_forwarded_from");
 
-    $content.find(".tgme_widget_message_forwarded_from").insertAfter("<br/>");
+    const forwardedFrom = $content
+      .find(".tgme_widget_message_forwarded_from")
+      .html()
+      .trim();
+    const text = $content.find(".tgme_widget_message_text").html().trim();
 
     items.push({
       id: link,
       link,
-      content: $content.html().trim(),
+      content: [forwardedFrom ? `${forwardedFrom}<br>` : "", text].join(""),
       date,
       image,
     });
