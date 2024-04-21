@@ -77,7 +77,6 @@ async function getFeed({ channelName }) {
     items.push({
       id: link,
       link,
-      title: `New post at ${date.toLocaleDateString()}`,
       content: $content.html(),
       date,
       image,
