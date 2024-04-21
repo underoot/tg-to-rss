@@ -90,7 +90,9 @@ async function getFeed({ channelName }) {
 export async function main({ channelName }) {
   if (!channelName) {
     return {
-      "content-type": "application/json",
+      headers: {
+        "content-type": "application/json",
+      },
       body: {
         error: "Channel name is required",
       },
@@ -100,7 +102,9 @@ export async function main({ channelName }) {
   return getFeed({ channelName }).then((feed) => {
     if (feed.error) {
       return {
-        "content-type": "application/xml",
+        headers: {
+          "content-type": "application/xml",
+        },
         body: `
           <xml version="1.0" encoding="UTF-8">
             <error>
@@ -113,7 +117,9 @@ export async function main({ channelName }) {
     }
 
     return {
-      "content-type": "application/xml",
+      headers: {
+        "content-type": "application/xml",
+      },
       body: feed.rss2(),
     };
   });
