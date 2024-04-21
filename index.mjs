@@ -82,10 +82,22 @@ async function getFeed({ channelName }) {
       ?.trim();
     const text = $content.find(".tgme_widget_message_text").html().trim();
 
+    // Get all HTML images
+    const images = [];
+
+    $content.find("img").each((_, el) => {
+      const $el = $(el);
+      images.push(`<img src="${$el.attr("src")}">`);
+    });
+
     items.push({
       id: link,
       link,
-      content: [forwardedFrom ? `${forwardedFrom}<br>` : "", text].join(""),
+      content: [
+        ...images,
+        forwardedFrom ? `${forwardedFrom}<br>` : "",
+        text,
+      ].join(""),
       date,
       image,
     });
