@@ -72,11 +72,7 @@ async function getFeed({ channelName }) {
     $content.find(".tgme_widget_message_date").remove();
     $content.find(".tgme_widget_message_link_preview").remove();
     $content.find(".tgme_widget_message_author").remove();
-
-    $content.find(".tgme_widget_message_meta").before(" ");
-    $content
-      .find("tgme_widget_message_info")
-      .attr("style", "font-size: 0.7em;");
+    $content.find(".tgme_widget_message_footer").remove();
 
     items.push({
       id: link,
