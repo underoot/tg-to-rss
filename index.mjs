@@ -64,7 +64,7 @@ async function getFeed({ channelName }) {
     });
 
     $content.find("*").each((_, el) => {
-      $(el).attr("style", "");
+      $(el).attr("style", null);
     });
 
     $content.find(".tgme_widget_message_bubble_tail").remove();
@@ -77,7 +77,7 @@ async function getFeed({ channelName }) {
     items.push({
       id: link,
       link,
-      content: $content.html(),
+      content: $content.find(".tgme_widget_message_text").html(),
       date,
       image,
     });
