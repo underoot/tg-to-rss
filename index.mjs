@@ -74,6 +74,12 @@ async function getFeed({ channelName }) {
     $content.find(".tgme_widget_message_author").remove();
     $content.find(".tgme_widget_message_footer").remove();
 
+    $content.find("div").each((_, el) => {
+      $(el).replaceWith(`<p>${$(el).html()}</p>`);
+    });
+
+    $content.find(".tgme_widget_message_forwarded_from").insertAfter("<br/>");
+
     items.push({
       id: link,
       link,
