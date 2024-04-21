@@ -95,7 +95,7 @@ async function getFeed({ channelName }) {
       link,
       content: [
         ...images,
-        forwardedFrom ? `${forwardedFrom}<br>` : "",
+        forwardedFrom ? `${forwardedFrom}<br><br>` : "",
         text,
       ].join(""),
       date,
