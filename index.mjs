@@ -77,7 +77,7 @@ async function getFeed({ channelName }) {
     items.push({
       id: link,
       link,
-      content: $content.html(),
+      content: $content.html().trim(),
       date,
       image,
     });
