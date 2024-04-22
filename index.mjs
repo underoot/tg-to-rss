@@ -80,7 +80,7 @@ async function getFeed({ channelName }) {
       .find(".tgme_widget_message_forwarded_from")
       .html()
       ?.trim();
-    const text = $content.find(".tgme_widget_message_text").html().trim();
+    const text = $content.find(".tgme_widget_message_text").html()?.trim();
 
     // Get all HTML images
     const images = [];
@@ -96,7 +96,7 @@ async function getFeed({ channelName }) {
       content: [
         ...images,
         forwardedFrom ? `${forwardedFrom}<br><br>` : "",
-        text,
+        text ? text : "Unsupported content",
       ].join(""),
       date,
       image,
