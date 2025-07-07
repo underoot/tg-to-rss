@@ -83,21 +83,32 @@ async function getFeed({ channelName }) {
 
     const text = messageText.html()?.trim();
 
-    // Get all HTML images
     const images = [];
+    const videos = [];
 
     $content.find("img").each((_, el) => {
       const $el = $(el);
       images.push(`<img src="${$el.attr("src")}">`);
     });
 
+    $content.find("video").each((_, el) => {
+      const $el = $(el);
+      const videoSrc = $el.attr("src");
+      if (videoSrc) {
+        videos.push(`<video controls><source src="${videoSrc}"></video>`);
+      }
+    });
+
+    const someMedia = images.length || videos.length;
+
     const item = {
       id: link,
       link,
       content: [
         ...images,
+        ...videos,
         forwardedFrom ? `${forwardedFrom}<br><br>` : "",
-        text ? text : "Unsupported content",
+        text ? text : someMedia ? "" : "Unsupported content",
       ].join(""),
       date,
       image,
