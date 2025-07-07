@@ -4,11 +4,15 @@
   "description": "Generate RSS feed from Telegram channel",
   "main": "index.js",
   "scripts": {
+    "serve": "nodemon --exec node -- ./server.mjs",
     "predeploy": "npm run build",
     "deploy": "doctl serverless deploy .",
     "build": "rollup -c rollup.config.mjs"
   },
-  "keywords": ["telegram", "rss"],
+  "keywords": [
+    "telegram",
+    "rss"
+  ],
   "author": "Aleksandr Shoronov",
   "license": "MIT",
   "dependencies": {
@@ -18,6 +22,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "express": "^5.1.0",
     "nodemon": "^2.0.15",
     "rollup": "^4.13.2",
     "rollup-plugin-node-builtins": "^2.1.2"

@@ -74,13 +74,14 @@ async function getFeed({ channelName }) {
     $content.find(".tgme_widget_message_author").remove();
     $content.find(".tgme_widget_message_footer").remove();
 
-    $content.find(".tgme_widget_message_forwarded_from");
-
     const forwardedFrom = $content
       .find(".tgme_widget_message_forwarded_from")
       .html()
       ?.trim();
-    const text = $content.find(".tgme_widget_message_text").html()?.trim();
+
+    const messageText = $content.find(".tgme_widget_message_text");
+
+    const text = messageText.html()?.trim();
 
     // Get all HTML images
     const images = [];
@@ -90,7 +91,7 @@ async function getFeed({ channelName }) {
       images.push(`<img src="${$el.attr("src")}">`);
     });
 
-    items.push({
+    const item = {
       id: link,
       link,
       content: [
@@ -100,7 +101,24 @@ async function getFeed({ channelName }) {
       ].join(""),
       date,
       image,
-    });
+    };
+
+    if (messageText.get(0)?.children?.[0].name === "b") {
+      item.title = messageText.get(0).children[0].children?.[0]?.data;
+    }
+
+    if (messageText.get(0)?.children?.[0].name === "a") {
+      item.title = messageText.get(0).children[0].children?.[0]?.data;
+    }
+
+    if (!item.title) {
+      const firstSentence = text?.split(/(?<=[.!?])\s+/)[0];
+      if (firstSentence) {
+        item.title = firstSentence;
+      }
+    }
+
+    items.push(item);
   });
 
   items.reverse().forEach((item) => {
