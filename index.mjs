@@ -79,7 +79,11 @@ async function getFeed({ channelName }) {
       .html()
       ?.trim();
 
-    const messageText = $content.find(".tgme_widget_message_text");
+    let messageText = $content.find(".tgme_widget_message_text");
+
+    if (messageText.find(".tgme_widget_message_text").length) {
+      messageText = messageText.find(".tgme_widget_message_text");
+    }
 
     const text = messageText.html()?.trim();
 
@@ -123,9 +127,13 @@ async function getFeed({ channelName }) {
     }
 
     if (!item.title) {
-      const firstSentence = text?.split(/(?<=[.!?])\s+/)[0];
+      const itemText = messageText.text().trim();
+      const firstSentence = itemText?.split(/(?<=[.!?])\s+/)[0];
       if (firstSentence) {
         item.title = firstSentence;
+      } else {
+        item.title =
+          itemText.slice(0, 100) + (itemText.length > 100 ? "..." : "");
       }
     }
 
